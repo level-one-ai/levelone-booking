@@ -109,7 +109,7 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 240px", gap: 20, maxWidth: 1050, width: "100%", height: 500 }}
+    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 240px", gap: 20, maxWidth: 1050, width: "100%", height: 560 }}
       className="booking-grid">
       {/* Left — logo */}
       <div style={{ ...PANEL, padding: 18, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }} className="side-panel">
@@ -117,16 +117,16 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
       </div>
 
       {/* Centre — form */}
-      <div style={{ ...PANEL, padding: "30px 35px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
+      <div style={{ ...PANEL, padding: "30px 35px", display: "flex", flexDirection: "column" }}>
         <h1 style={{ color: "#fff", fontSize: 24, fontWeight: 600, textAlign: "center", letterSpacing: "-0.5px", marginBottom: 4 }}>
           Client Information
         </h1>
-        <p style={{ color: "#999", fontSize: 13, textAlign: "center", marginBottom: 20 }}>
+        <p style={{ color: "#999", fontSize: 13, textAlign: "center", marginBottom: 14 }}>
           Fill out your details to schedule your kickoff call
         </p>
 
         {/* Call type selector */}
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 12 }}>
           <span style={{ ...labelStyle, marginBottom: 8, display: "block" }}>Call Type</span>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {(["video", "phone"] as CallType[]).map(ct => (
@@ -138,7 +138,6 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
                 background: callType === ct ? "linear-gradient(145deg,#1a0e00,#120a00)" : "linear-gradient(145deg,#0d0d0d,#080808)",
                 boxShadow: callType === ct ? "0 0 12px rgba(255,140,0,0.2),inset 0 1px 0 rgba(255,255,255,0.02)" : undefined,
               }}>
-                <div style={{ fontSize: 16, marginBottom: 2 }}>{ct === "video" ? "📹" : "📞"}</div>
                 <div style={{ color: callType === ct ? "#ff8c00" : "#fff", fontSize: 12, fontWeight: 600 }}>
                   {ct === "video" ? "Video Call" : "Phone Call"}
                 </div>
@@ -150,12 +149,12 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
           </div>
         </div>
 
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 10 }}>
           <label style={labelStyle}>Name</label>
           <input value={form.name} onChange={e => upd("name", e.target.value)} style={inputStyle} placeholder="Enter your full name" />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 10 }}>
           <div>
             <label style={labelStyle}>Email</label>
             <input type="email" value={form.email} onChange={e => upd("email", e.target.value)} style={inputStyle} placeholder="your@email.com" />
@@ -166,7 +165,7 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 10 }}>
           <div>
             <label style={labelStyle}>Company Name</label>
             <input value={form.company} onChange={e => upd("company", e.target.value)} style={inputStyle} placeholder="Your company" />
@@ -315,7 +314,7 @@ function CalendarStep({
         {infoItems.map((t, i) => <InfoItem key={i} text={t} delay={i * 0.3} />)}
         <div style={{ ...INSET, padding: "8px 12px", display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: callType === "video" ? "#2D8CFF" : "#22c55e", flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: "#fff" }}>{callType === "video" ? "📹 Video Call (30 min)" : "📞 Phone Call (15 min)"}</span>
+          <span style={{ fontSize: 11, color: "#fff" }}>{callType === "video" ? "Video Call (30 min)" : "Phone Call (15 min)"}</span>
         </div>
       </div>
 
