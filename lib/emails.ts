@@ -39,7 +39,7 @@ export async function sendOwnerNotification(p: BookingEmailParams) {
     html: `<div style="font-family:sans-serif;background:#1a1a1a;padding:24px;border-radius:12px;max-width:480px">
 <h2 style="color:#ff8c00;margin:0 0 16px">📅 New booking</h2>
 <table style="width:100%;border-collapse:collapse">
-${[["Client",p.clientName],["Company",p.company],["Email",p.clientEmail],["Phone",p.clientPhone],["Location",p.location],p.website?["Website",p.website]:null,["Date",p.date],["Time",p.time],["Duration",`${p.durationMinutes} min`],["Type",p.callType==="video"?"Video call":"Phone call"]].filter(Boolean).map(([l,v])=>`<tr><td style="padding:7px;color:#888;font-size:13px">${l}</td><td style="padding:7px;color:#fff;font-size:13px">${v}</td></tr>`).join("")}
+${([ ["Client",p.clientName],["Company",p.company],["Email",p.clientEmail],["Phone",p.clientPhone],["Location",p.location],p.website ? ["Website",p.website] : null,["Date",p.date],["Time",p.time],["Duration",`${p.durationMinutes} min`],["Type",p.callType==="video"?"Video call":"Phone call"] ] as (string[] | null)[]).filter((x): x is string[] => x !== null).map(([l,v])=>`<tr><td style="padding:7px;color:#888;font-size:13px">${l}</td><td style="padding:7px;color:#fff;font-size:13px">${v}</td></tr>`).join("")}
 </table>
 ${p.zoomJoinUrl ? `<a href="${p.zoomJoinUrl}" style="display:inline-block;background:#2D8CFF;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-weight:600;margin-top:12px;font-size:13px">Start Zoom</a>` : ""}
 </div>`,
