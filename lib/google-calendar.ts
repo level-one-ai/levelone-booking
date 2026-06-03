@@ -35,35 +35,79 @@ export async function getBusySlots(from: Date, to: Date): Promise<{ start: strin
 }
 
 export interface BookingDetails {
-  summary: string; description: string; start: Date; durationMinutes: number;
-  attendeeEmail: string; attendeeName: string; zoomJoinUrl?: string;
-  zoomMeetingId?: string; isPhoneCall: boolean; attendeePhone?: string;
+  summary: string;
+  description: string;
+  start: Date;
+  durationMinutes: number;
+  attendeeEmail: string;
+  attendeeName: string;
+  isPhoneCall: boolean;
+  attendeePhone?: string;
+  addMeet?: boolean; // true = attach a Google Meet conference automatically
 }
 
-export async function createCalendarEvent(details: BookingDetails): Promise<string | null> {
+export interface CalendarEventResult {
+  eventId: string | null;
+  meetLink: string | null;  // Google Meet join URL, e.g. https://meet.google.com/abc-defg-hij
+}
+
+export async function createCalendarEvent(
+  details: BookingDetails
+): Promise<CalendarEventResult> {
   const calendar = getCalendar();
   const calendarId = process.env.GOOGLE_CALENDAR_ID || "primary";
-  if (!calendar) return null;
+
+  if (!calendar) return { eventId: null, meetLink: null };
+
   const end = new Date(details.start.getTime() + details.durationMinutes * 60 * 1000);
+
   const desc = [
-    details.description, "",
-    `Client: ${details.attendeeName}`, `Email: ${details.attendeeEmail}`,
+    details.description,
+    "",
+    `Client: ${details.attendeeName}`,
+    `Email: ${details.attendeeEmail}`,
     details.attendeePhone ? `Phone: ${details.attendeePhone}` : null,
-    details.isPhoneCall ? `Call type: Phone call` : `Call type: Video call via Zoom`,
-    details.zoomJoinUrl ? `Zoom link: ${details.zoomJoinUrl}` : null,
-    details.zoomMeetingId ? `Zoom ID: ${details.zoomMeetingId}` : null,
+    details.isPhoneCall ? `Call type: Phone call` : `Call type: Video call via Google Meet`,
   ].filter(Boolean).join("\n");
+
+  // Generate a unique request ID for the Meet conference — required by the API
+  const requestId = `levelone-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
   try {
     const event = await calendar.events.insert({
       calendarId,
+      // conferenceDataVersion=1 tells Google to honour the conferenceData we pass
+      conferenceDataVersion: details.addMeet ? 1 : 0,
       requestBody: {
-        summary: details.summary, description: desc,
+        summary: details.summary,
+        description: desc,
         start: { dateTime: details.start.toISOString(), timeZone: TIMEZONE },
-        end: { dateTime: end.toISOString(), timeZone: TIMEZONE },
+        end:   { dateTime: end.toISOString(),           timeZone: TIMEZONE },
         attendees: [{ email: details.attendeeEmail }],
-        reminders: { useDefault: false, overrides: [{ method: "email", minutes: 60 }, { method: "popup", minutes: 15 }] },
+        reminders: {
+          useDefault: false,
+          overrides: [{ method: "email", minutes: 60 }, { method: "popup", minutes: 15 }],
+        },
+        // Attach a Google Meet room — only for video calls
+        ...(details.addMeet ? {
+          conferenceData: {
+            createRequest: {
+              requestId,
+              conferenceSolutionKey: { type: "hangoutsMeet" },
+            },
+          },
+        } : {}),
       },
     });
-    return event.data.id ?? null;
-  } catch { return null; }
+
+    // Extract the Meet link from the response
+    const meetLink =
+      event.data.conferenceData?.entryPoints?.find(
+        (ep: any) => ep.entryPointType === "video"
+      )?.uri ?? null;
+
+    return { eventId: event.data.id ?? null, meetLink };
+  } catch {
+    return { eventId: null, meetLink: null };
+  }
 }

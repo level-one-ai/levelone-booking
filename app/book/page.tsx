@@ -14,7 +14,7 @@ interface FormData {
 
 interface ConfirmData {
   date: string; time: string; callType: CallType;
-  zoomJoinUrl?: string; zoomMeetingId?: string;
+  meetLink?: string;
 }
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
                   {ct === "video" ? "Video Call" : "Phone Call"}
                 </div>
                 <div style={{ color: "#777", fontSize: 10, marginTop: 2 }}>
-                  {ct === "video" ? "30 min · Zoom" : "15 min · Phone"}
+                  {ct === "video" ? "30 min · Google Meet" : "15 min · Phone"}
                 </div>
               </button>
             ))}
@@ -217,7 +217,7 @@ function CalendarStep({
   form, callType, onConfirm,
 }: {
   form: FormData; callType: CallType;
-  onConfirm: (date: string, time: string) => void;
+  onConfirm: (date: string, time: string, meetLink?: string) => void;
 }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const [current, setCurrent] = React.useState(new Date(today));
@@ -291,7 +291,7 @@ function CalendarStep({
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Booking failed");
-      onConfirm(data.date || selectedDateStr, selTime);
+      onConfirm(data.date || selectedDateStr, selTime, data.meetLink ?? undefined);
     } catch (e: any) {
       setError(e.message || "Something went wrong. Please try again.");
     } finally { setSubmitting(false); }
@@ -394,9 +394,9 @@ function CalendarStep({
 
 // ─── STEP 3 — Confirmation modal ──────────────────────────────────────────────
 
-function ConfirmModal({ name, email, date, time, callType, zoomJoinUrl, onFinish }: {
+function ConfirmModal({ name, email, date, time, callType, meetLink, onFinish }: {
   name: string; email: string; date: string; time: string;
-  callType: CallType; zoomJoinUrl?: string; onFinish: () => void;
+  callType: CallType; meetLink?: string; onFinish: () => void;
 }) {
   return (
     <div style={{
@@ -411,18 +411,18 @@ function ConfirmModal({ name, email, date, time, callType, zoomJoinUrl, onFinish
           {callType === "video" ? "Video Call Confirmed" : "Phone Call Confirmed"}
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-          {[["Name", name], ["Email", email], ["Date", date], ["Time", time], ["Type", callType === "video" ? "Video Call (Zoom) · 30 min" : "Phone Call · 15 min"]].map(([l,v]) => (
+          {[["Name", name], ["Email", email], ["Date", date], ["Time", time], ["Type", callType === "video" ? "Video Call (Google Meet) · 30 min" : "Phone Call · 15 min"]].map(([l,v]) => (
             <div key={l} style={{ ...INSET, padding: "10px 15px", display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "#999", fontSize: 13, fontWeight: 600 }}>{l}:</span>
               <span style={{ color: "#fff", fontSize: 13, textAlign: "right" }}>{v}</span>
             </div>
           ))}
-          {callType === "video" && zoomJoinUrl && (
-            <a href={zoomJoinUrl} target="_blank" rel="noreferrer" style={{
-              display: "block", background: "#2D8CFF", color: "#fff", textDecoration: "none",
+          {callType === "video" && meetLink && (
+            <a href={meetLink} target="_blank" rel="noreferrer" style={{
+              display: "block", background: "#1a73e8", color: "#fff", textDecoration: "none",
               padding: "10px 15px", borderRadius: 8, textAlign: "center", fontWeight: 600, fontSize: 13,
             }}>
-              Save Zoom Link →
+              Join Google Meet →
             </a>
           )}
         </div>
@@ -485,8 +485,8 @@ export default function BookPage() {
         <CalendarStep
           form={formData}
           callType={callType}
-          onConfirm={(date, time) => {
-            setConfirm({ date, time, callType });
+          onConfirm={(date, time, meetLink) => {
+            setConfirm({ date, time, callType, meetLink });
             setStep("confirm");
           }}
         />
@@ -505,7 +505,7 @@ export default function BookPage() {
             date={confirm.date}
             time={confirm.time}
             callType={confirm.callType}
-            zoomJoinUrl={confirm.zoomJoinUrl}
+            meetLink={confirm.meetLink}
             onFinish={() => setStep("thankyou")}
           />
         </>
