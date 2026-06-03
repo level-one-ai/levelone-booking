@@ -253,14 +253,13 @@ function CalendarStep({
     cells.push(
       <div key={i} onClick={disabled ? undefined : () => { setSelDate(d); setSelTime(""); }}
         style={{
-          aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center",
-          borderRadius: 6, fontSize: 10, fontWeight: 500, maxHeight: 42, cursor: disabled ? "not-allowed" : "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: disabled ? "not-allowed" : "pointer",
           transition: "all 0.2s",
           color: disabled ? "#555" : "#fff",
           border: isToday ? "2px solid #ff8c00" : "1px solid rgba(255,255,255,0.06)",
           background: isSel
             ? "linear-gradient(135deg,#ff8c00,#ff7700)"
-            : disabled ? "linear-gradient(145deg,#0d0d0d,#080808)"
             : "linear-gradient(145deg,#0d0d0d,#080808)",
           boxShadow: isSel
             ? "0 4px 12px rgba(255,140,0,0.4),0 0 20px rgba(255,140,0,0.2)"
@@ -304,12 +303,12 @@ function CalendarStep({
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 240px", gap: 20, maxWidth: 1050, width: "100%", height: 500 }}
+    <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 240px", gap: 20, maxWidth: 1050, width: "100%", height: 560 }}
       className="booking-grid">
-      {/* Left — client info */}
-      <div style={{ ...PANEL, padding: 18, display: "flex", flexDirection: "column", gap: 10, overflowY: "auto", height: "100%" }} className="side-panel">
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-          <HexLogo size={120} />
+      {/* Left — client info — no scroll, fixed height */}
+      <div style={{ ...PANEL, padding: 18, display: "flex", flexDirection: "column", gap: 8, overflow: "hidden", height: "100%" }} className="side-panel">
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
+          <HexLogo size={100} />
         </div>
         {infoItems.map((t, i) => <InfoItem key={i} text={t} delay={i * 0.3} />)}
         <div style={{ ...INSET, padding: "8px 12px", display: "flex", alignItems: "center", gap: 12 }}>
@@ -318,8 +317,8 @@ function CalendarStep({
         </div>
       </div>
 
-      {/* Centre — calendar */}
-      <div style={{ ...PANEL, padding: 15, display: "flex", flexDirection: "column", overflow: "hidden", height: "100%" }}>
+      {/* Centre — calendar — no scroll at all */}
+      <div style={{ ...PANEL, padding: "14px 14px 10px", display: "flex", flexDirection: "column", overflow: "hidden", height: "100%" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <h2 style={{ color: "#fff", fontSize: 16, fontWeight: 600 }}>{MONTHS[month]} {year}</h2>
           <div style={{ display: "flex", gap: 8 }}>
@@ -338,30 +337,35 @@ function CalendarStep({
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 5, marginBottom: 5 }}>
-          {DAYS.map(d => <div key={d} style={{ textAlign: "center", color: "#999", fontSize: 9, fontWeight: 600, padding: "4px 2px" }}>{d}</div>)}
+        {/* Weekday labels */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
+          {DAYS.map(d => <div key={d} style={{ textAlign: "center", color: "#999", fontSize: 9, fontWeight: 600, padding: "3px 0" }}>{d}</div>)}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 5, flex: 1 }}>
+        {/* Day cells — flex:1 so they fill all remaining height */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, flex: 1 }}>
           {cells}
         </div>
       </div>
 
-      {/* Right — time slots */}
-      <div style={{ ...PANEL, padding: 18, display: "flex", flexDirection: "column", height: "100%" }}>
-        <div style={{ color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "center", marginBottom: 10, position: "sticky", top: 0, background: "linear-gradient(145deg,#1e1e1e,#161616)", padding: "5px 0", zIndex: 10 }}>
+      {/* Right — time slots — ONLY this panel scrolls */}
+      <div style={{ ...PANEL, padding: 18, display: "flex", flexDirection: "column", overflow: "hidden", height: "100%" }}>
+        {/* Sticky header */}
+        <div style={{ color: "#fff", fontSize: 14, fontWeight: 600, textAlign: "center", marginBottom: 10, flexShrink: 0 }}>
           {selectedDateStr}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, overflowY: "auto", flex: 1 }}>
+        {/* Scrollable slot list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 7, overflowY: "auto", flex: 1 }}>
           {TIMES.map(t => (
             <div key={t} onClick={() => selDate && setSelTime(t)}
               style={{
-                ...INSET, padding: 8, textAlign: "center", cursor: selDate ? "pointer" : "not-allowed",
+                ...INSET, padding: "7px 8px", textAlign: "center", cursor: selDate ? "pointer" : "not-allowed",
                 fontSize: 12, color: "#fff", transition: "all 0.2s", borderRadius: 8,
                 opacity: !selDate ? 0.4 : 1,
                 background: selTime === t ? "linear-gradient(135deg,#ff8c00,#ff7700)" : "linear-gradient(145deg,#0d0d0d,#080808)",
                 border: selTime === t ? "1px solid #ff8c00" : "1px solid rgba(255,255,255,0.06)",
                 boxShadow: selTime === t ? "0 4px 12px rgba(255,140,0,0.4),0 0 20px rgba(255,140,0,0.2)" : undefined,
+                flexShrink: 0,
               }}
               className={selDate ? "slot-hover" : ""}
             >
@@ -369,13 +373,14 @@ function CalendarStep({
             </div>
           ))}
         </div>
-        {error && <p style={{ color: "#ef4444", fontSize: 11, textAlign: "center", marginTop: 8 }}>{error}</p>}
+        {error && <p style={{ color: "#ef4444", fontSize: 11, textAlign: "center", marginTop: 6, flexShrink: 0 }}>{error}</p>}
+        {/* Confirm button — always visible at bottom */}
         <button
           disabled={!selDate || !selTime || submitting}
           onClick={handleConfirm}
           style={{
-            ...ORANGE_BTN, padding: "12px 24px", width: "100%", fontSize: 14,
-            marginTop: 12, borderRadius: 8,
+            ...ORANGE_BTN, padding: "11px 24px", width: "100%", fontSize: 14,
+            marginTop: 10, borderRadius: 8, flexShrink: 0,
             opacity: (!selDate || !selTime || submitting) ? 0.4 : 1,
             cursor: (!selDate || !selTime || submitting) ? "not-allowed" : "pointer",
           }}
