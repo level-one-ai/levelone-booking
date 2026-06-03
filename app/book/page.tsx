@@ -52,7 +52,7 @@ function HexLogo({ size = 140 }: { size?: number }) {
 // ─── Shared panel style ───────────────────────────────────────────────────────
 
 const PANEL: React.CSSProperties = {
-  background: "linear-gradient(145deg,#1e1e1e,#161616)",
+  background: "linear-gradient(145deg,#2a2a2a,#242424)",
   borderRadius: 16,
   border: "1px solid rgba(255,255,255,0.08)",
   boxShadow: "0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05),0 0 40px rgba(255,140,0,0.05)",
