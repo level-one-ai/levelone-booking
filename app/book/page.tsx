@@ -14,7 +14,7 @@ interface FormData {
 
 interface ConfirmData {
   date: string; time: string; callType: CallType;
-  meetLink?: string;
+  zoomJoinUrl?: string; zoomMeetingId?: string;
 }
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ function HexLogo({ size = 140 }: { size?: number }) {
 // ─── Shared panel style ───────────────────────────────────────────────────────
 
 const PANEL: React.CSSProperties = {
-  background: "linear-gradient(145deg,#2a2a2a,#242424)",
+  background: "linear-gradient(145deg,#1e1e1e,#161616)",
   borderRadius: 16,
   border: "1px solid rgba(255,255,255,0.08)",
   boxShadow: "0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05),0 0 40px rgba(255,140,0,0.05)",
@@ -142,7 +142,7 @@ function FormStep({ onNext }: { onNext: (data: FormData, ct: CallType) => void }
                   {ct === "video" ? "Video Call" : "Phone Call"}
                 </div>
                 <div style={{ color: "#777", fontSize: 10, marginTop: 2 }}>
-                  {ct === "video" ? "30 min · Google Meet" : "15 min · Phone"}
+                  {ct === "video" ? "30 min · Zoom" : "15 min · Phone"}
                 </div>
               </button>
             ))}
@@ -217,7 +217,7 @@ function CalendarStep({
   form, callType, onConfirm,
 }: {
   form: FormData; callType: CallType;
-  onConfirm: (date: string, time: string, meetLink?: string) => void;
+  onConfirm: (date: string, time: string) => void;
 }) {
   const today = new Date(); today.setHours(0,0,0,0);
   const [current, setCurrent] = React.useState(new Date(today));
@@ -280,7 +280,12 @@ function CalendarStep({
   async function handleConfirm() {
     if (!selDate || !selTime) return;
     setSubmitting(true); setError("");
-    const dateStr = selDate.toISOString().slice(0,10);
+    // Format date as YYYY-MM-DD using LOCAL date parts — NOT toISOString()
+    // which converts to UTC and shifts the date for BST (UTC+1) users
+    const y = selDate.getFullYear();
+    const m = String(selDate.getMonth() + 1).padStart(2, "0");
+    const d = String(selDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
     try {
       const r = await fetch("/api/book", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -291,7 +296,7 @@ function CalendarStep({
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error || "Booking failed");
-      onConfirm(data.date || selectedDateStr, selTime, data.meetLink ?? undefined);
+      onConfirm(data.date || selectedDateStr, data.time || TIME_LABELS[selTime] || selTime);
     } catch (e: any) {
       setError(e.message || "Something went wrong. Please try again.");
     } finally { setSubmitting(false); }
@@ -394,9 +399,9 @@ function CalendarStep({
 
 // ─── STEP 3 — Confirmation modal ──────────────────────────────────────────────
 
-function ConfirmModal({ name, email, date, time, callType, meetLink, onFinish }: {
+function ConfirmModal({ name, email, date, time, callType, zoomJoinUrl, onFinish }: {
   name: string; email: string; date: string; time: string;
-  callType: CallType; meetLink?: string; onFinish: () => void;
+  callType: CallType; zoomJoinUrl?: string; onFinish: () => void;
 }) {
   return (
     <div style={{
@@ -411,18 +416,18 @@ function ConfirmModal({ name, email, date, time, callType, meetLink, onFinish }:
           {callType === "video" ? "Video Call Confirmed" : "Phone Call Confirmed"}
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-          {[["Name", name], ["Email", email], ["Date", date], ["Time", time], ["Type", callType === "video" ? "Video Call (Google Meet) · 30 min" : "Phone Call · 15 min"]].map(([l,v]) => (
+          {[["Name", name], ["Email", email], ["Date", date], ["Time", time], ["Type", callType === "video" ? "Video Call (Zoom) · 30 min" : "Phone Call · 15 min"]].map(([l,v]) => (
             <div key={l} style={{ ...INSET, padding: "10px 15px", display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "#999", fontSize: 13, fontWeight: 600 }}>{l}:</span>
               <span style={{ color: "#fff", fontSize: 13, textAlign: "right" }}>{v}</span>
             </div>
           ))}
-          {callType === "video" && meetLink && (
-            <a href={meetLink} target="_blank" rel="noreferrer" style={{
-              display: "block", background: "#1a73e8", color: "#fff", textDecoration: "none",
+          {callType === "video" && zoomJoinUrl && (
+            <a href={zoomJoinUrl} target="_blank" rel="noreferrer" style={{
+              display: "block", background: "#2D8CFF", color: "#fff", textDecoration: "none",
               padding: "10px 15px", borderRadius: 8, textAlign: "center", fontWeight: 600, fontSize: 13,
             }}>
-              Join Google Meet →
+              Save Zoom Link →
             </a>
           )}
         </div>
@@ -485,8 +490,8 @@ export default function BookPage() {
         <CalendarStep
           form={formData}
           callType={callType}
-          onConfirm={(date, time, meetLink) => {
-            setConfirm({ date, time, callType, meetLink });
+          onConfirm={(date, time) => {
+            setConfirm({ date, time, callType });
             setStep("confirm");
           }}
         />
@@ -505,7 +510,7 @@ export default function BookPage() {
             date={confirm.date}
             time={confirm.time}
             callType={confirm.callType}
-            meetLink={confirm.meetLink}
+            zoomJoinUrl={confirm.zoomJoinUrl}
             onFinish={() => setStep("thankyou")}
           />
         </>
